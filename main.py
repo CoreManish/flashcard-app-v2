@@ -2,9 +2,22 @@ from flask import Flask, jsonify, redirect, render_template, request, url_for
 from models import *
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+
+
+#------User Authentication-------
+
+@app.route('/login',methods=['POST'])
+def login():
+    data=request.get_json()
+    check_record=User.query.filter_by(username=data['username'],password=data['password']).first()
+    
+    if check_record is not None:
+        return jsonify({'message':'Logged in successfully'}),200
+    else:
+        return  jsonify({'message':'Not Registered'}),202
+
+
+#------User Registration------
 
 @app.route('/register',methods=['POST'])
 def register():
@@ -21,15 +34,15 @@ def register():
         return jsonify({"message":"Either email or username exists"})
 
 
-@app.route('/login',methods=['POST'])
-def login():
-    data=request.get_json()
-    check_record=User.query.filter_by(username=data['username'],password=data['password']).first()
-    
-    if check_record is not None:
-        return jsonify({'message':'Logged in successfully'}),200
-    else:
-        return  jsonify({'message':'Not Registered'}),202
+
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+
 
 if __name__=='__main__':
     app.run(debug=True)
