@@ -23,11 +23,24 @@ const app=new Vue({
     data:{
         loginStatus:false
     },
+    watch:{
+        // If clicked on logout loginStatus will become false and
+        // after login, loginStatus will become true 
+        loginStatus(){
+            localStorage.setItem("loginStatus",this.loginStatus)
+            if(this.loginStatus==false){
+                window.location.replace("/#/login")
+            }
+        }
+    },
     router: router,
     mounted() {
+         //after loading and mounting, take value from localStorage and put in vue data
         if (localStorage.loginStatus) {
-            //after loading and mounting, take value from localStorage and put in vue data
             this.loginStatus = JSON.parse(localStorage.loginStatus)
+        }
+        if(this.loginStatus==false){
+            window.location.replace("/#/login")
         }
     }
 

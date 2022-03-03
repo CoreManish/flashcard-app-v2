@@ -28,9 +28,9 @@
                         <router-link to="/" class="nav-item nav-link text-white">Home</router-link>
                         <router-link to="/decks" class="nav-item nav-link text-white">Decks</router-link>
                         <router-link to="/review" class="nav-item nav-link text-white">Review</router-link>
-                        <router-link to="/login" class="nav-item nav-link disabled text-white" v-if="!loginStatus">Login
+                        <router-link to="/login" class="nav-item nav-link rounded-pill btn bg-warning text-white" v-if="!loginStatus">Login
                         </router-link>
-                        <a href="/logout" class="nav-item nav-link disabled text-white" v-else>Logout</a>
+                        <button href="/logout" class="nav-item nav-link rounded-pill btn bg-warning text-white" v-else @click="loginStatus=false">Logout</button>
                     </div>
                 </div>
             </nav>
