@@ -33,6 +33,12 @@ const app=new Vue({
             }
         }
     },
+    methods:{
+        logout(){
+            this.loginStatus=false
+            document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+    },
     router: router,
     mounted() {
          //after loading and mounting, take value from localStorage and put in vue data
