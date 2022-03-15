@@ -1,6 +1,6 @@
 export const login = Vue.component("login", {
     template: ` 
-      <div class="card mx-auto" style="width: 20rem;">
+      <div class="card mx-auto" style="width: 20rem;margin-top:20px;">
           <div class="card-body">  
                 <p><input type="text" placeholder="username" name="username" v-model="username"></p>
                 <p><input type="password" placeholder="password" name="password" v-model="password"></p>
@@ -19,20 +19,30 @@ export const login = Vue.component("login", {
     methods: {
         async signin() {
             const data = { username: this.username, password: this.password };
-            const f =await fetch("/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            });
-            if (f.status==200){
-                window.location.replace("/");
-                localStorage.setItem("loginStatus",true)
-            }else{
-                const j=await f.json();
-                this.err=j.message;
-                
+            try {
+                const response = await fetch("/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                    this.err = result.message
+                }
+                if (response.status == 200) {
+                    localStorage.setItem("loginStatus", true)
+                    localStorage.setItem("token", result.token)
+                    this.err=""
+                    this.$root.loginStatus = true
+                    window.location.replace("/#/");
+
+                }
+
+            } catch (err) {
+                console.log(err);
             }
         }
+
     }
 
 });

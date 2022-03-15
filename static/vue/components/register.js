@@ -23,13 +23,17 @@ export const register = Vue.component("register", {
     methods: {
         async signup() {
             const data={name:this.name, email:this.email,username:this.username,password:this.password};
-            fetch("/register",{
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify(data)
-            }).then(response=> response.json()).then(data=> { this.err=data.message }).catch((error) => {
-                console.error('Error:', error);
-            });
+            try{
+                const response=await fetch("/register",{
+                    method:"POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                this.err = result.message
+                
+                
+            }catch(err){console.log(err)}
         }
     }
 

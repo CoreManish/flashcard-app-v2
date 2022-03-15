@@ -11,10 +11,31 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <style>
         .navbar{ background-color: rgb(4, 65, 94);}
+        body {
+            background-image: url('/static/img/back.jpg');
+            height: 100vh;
+        }
+        .eachdata {
+            margin-bottom: 15px;
+        }
+        .card {
+            margin: 0 auto;
+            /* Added */
+            float: none;
+            /* Added */
+            margin-bottom: 10px;
+            /* Added */
+        }
+        .card-deck {
+            margin: 20px auto;
+        }
+
+        
+
     </style>
 </head>
 
-<body>
+<body class="bg-image">
     <div id="vue-app">
         <div id="nav">
             <nav class="navbar navbar-expand-lg navbar-light">
@@ -27,6 +48,7 @@
                     <div class="navbar-nav">
                         <router-link to="/" class="nav-item nav-link text-white">Home</router-link>
                         <router-link to="/decks" class="nav-item nav-link text-white">Decks</router-link>
+                        <router-link to="/cards" class="nav-item nav-link text-white">Cards</router-link>
                         <router-link to="/review" class="nav-item nav-link text-white">Review</router-link>
                         <router-link to="/login" class="nav-item nav-link rounded-pill btn bg-warning text-white" v-if="!loginStatus">Login
                         </router-link>

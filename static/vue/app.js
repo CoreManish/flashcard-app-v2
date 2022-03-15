@@ -1,6 +1,7 @@
 //component import starts
 import { home } from "./components/home.js";
 import { decks } from "./components/decks.js";
+import { cards } from "./components/cards.js";
 import { login } from "./components/login.js";
 import { register } from "./components/register.js";
 import { review } from "./components/review.js";
@@ -9,6 +10,7 @@ import { review } from "./components/review.js";
 const routes = [
     { path: "/", component: home },
     { path: "/decks", component: decks },
+    { path: "/cards", component: cards },
     { path: "/review", component: review },
     { path: "/login", component:login},
     { path : "/register", component:register}
@@ -36,17 +38,21 @@ const app=new Vue({
     methods:{
         logout(){
             this.loginStatus=false
-            document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            localStorage.clear()
         }
     },
     router: router,
     mounted() {
+        
          //after loading and mounting, take value from localStorage and put in vue data
         if (localStorage.loginStatus) {
             this.loginStatus = JSON.parse(localStorage.loginStatus)
         }
         if(this.loginStatus==false){
             window.location.replace("/#/login")
+        }
+        if(localStorage.decks){
+            localStorage.removeItem("decks")
         }
     }
 
