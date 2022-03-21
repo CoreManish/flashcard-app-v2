@@ -24,24 +24,24 @@ export const decks = Vue.component("decks", {
   },
 
   methods: {
-    async syncDecks(){
+    async syncDecks() {
       let url = "/deck?token="
       const token = localStorage.getItem("token")
       url = url + token
-      try{
-        const response= await fetch(url);
-        const result=await response.json();
-        if (!response.ok){
+      try {
+        const response = await fetch(url);
+        const result = await response.json();
+        if (!response.ok) {
           return alert(result.message)
         }
         console.log(result)
-        this.decks=[]
-        for (let i in result){
+        this.decks = []
+        for (let i in result) {
           this.decks.push(result[i])
         }
-        localStorage.decks=JSON.stringify(this.decks)
+        localStorage.decks = JSON.stringify(this.decks)
         alert("synced")
-      }catch(err){console.log(err)}
+      } catch (err) { console.log(err) }
     },
 
     async create() {
@@ -78,13 +78,13 @@ export const decks = Vue.component("decks", {
       } catch (err) { console.log(err) }
     }
   },
-  components:{
+  components: {
     eachdeck: {
       props: ['d'],
       template: `
       <div class="card" style="width: 20rem;">
           <div class="card-body">
-              <h5 class="card-title">Deck Name: <input type="text" v-model="d.name"></h5>
+              <p class="card-title">Deck Name: <input type="text" v-model="d.name" class="border-0"></p>
               <p>Average Deck Score: {{d.average_score}}</p>
              
               <button class="btn btn-success" @click="update">Update</button>
@@ -100,14 +100,14 @@ export const decks = Vue.component("decks", {
           </div>
           
       </div>`,
-      
+
       methods: {
-        async remove(){
+        async remove() {
           //alert(this.d.id)
           //console.log(this.$parent.decks[0].name)
-          const con=confirm("This will delete all cards present in this deck")
-          if (con == false){
-            return 
+          const con = confirm("This will delete all cards present in this deck")
+          if (con == false) {
+            return
           }
           for (let i = 0; i < this.$parent.decks.length; i++) {
             if (this.$parent.decks[i].id === this.d.id) {
@@ -115,70 +115,72 @@ export const decks = Vue.component("decks", {
               let url = "/deck?token="
               const token = localStorage.getItem("token")
               url = url + token
-              try{
+              try {
                 const response = await fetch(url, {
                   method: "DELETE",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(data)
                 });
-                if (response.ok){
-                  this.$parent.decks.splice(i,1);
+                if (response.ok) {
+                  this.$parent.decks.splice(i, 1);
                   localStorage.decks = JSON.stringify(this.$parent.decks);
                   alert("Deck deleted")
                 }
-              }catch(err){console.log(err)}
-              
+              } catch (err) { console.log(err) }
+
             }
           }
-          
-          
+
+
         },
-        async update(){
+        async update() {
           for (let i = 0; i < this.$parent.decks.length; i++) {
             if (this.$parent.decks[i].id === this.d.id) {
-              this.$parent.decks[i].name=this.d.name
+              this.$parent.decks[i].name = this.d.name
 
-              const data = { id: this.d.id,name:this.d.name };
+              const data = { id: this.d.id, name: this.d.name };
               let url = "/deck?token="
               const token = localStorage.getItem("token")
               url = url + token
-              try{
+              try {
                 const response = await fetch(url, {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(data)
                 });
-                if (response.ok){
+                if (response.ok) {
                   alert("Deck Updated")
                 }
-              }catch(err){console.log(err)}
-              
+              } catch (err) { console.log(err) }
+
             }
           }
           localStorage.decks = JSON.stringify(this.$parent.decks)
         },
-        review(){
-          localStorage.deck_id=this.d.id;
-          localStorage.deck_name=this.d.name;
+        review() {
+          localStorage.deck_id = this.d.id;
+          localStorage.deck_name = this.d.name;
           window.location.replace("/#/review")
         },
-        cards(){
-          localStorage.deck_id=this.d.id;
-          localStorage.deck_name=this.d.name;
-          if (localStorage.cards){
+        cards() {
+          localStorage.deck_id = this.d.id;
+          localStorage.deck_name = this.d.name;
+          if (localStorage.cards) {
             localStorage.removeItem("cards")
           }
           window.location.replace("/#/cards")
         }
-          
+
       }
 
     }
   },
-  mounted(){
-    if (localStorage.decks){
-      this.decks=JSON.parse(localStorage.decks);
-
+  mounted() {
+    if (localStorage.decks) {
+      this.decks = JSON.parse(localStorage.decks);
+    }
+    if (!localStorage.token) {
+      window.location.replace("/#/login")
     }
   }
 });

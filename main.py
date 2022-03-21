@@ -369,5 +369,60 @@ class OneCardResource(Resource):
 api.add_resource(OneCardResource, "/onecard/<int:deck_id>")
 
 
+import csv
+#-----Import-Export Deck---------
+class IEDeckResource(Resource):
+    @token_required
+    def get(self):
+        check_user=User.query.filter_by(id=USER_ID).first()
+        decks=check_user.decks
+        if len(decks)==0:
+            abort(401,"No deck found")
+        # open the file in the write mode
+        filename="static/temp/"+str(USER_ID)+"-decks.csv"
+        with open(filename, 'w', encoding='UTF8', newline='') as f:
+            writer = csv.writer(f)
+
+            # write the header
+            header=['id','name','average_score','last_review_time','user_id']
+            writer.writerow(header)
+
+            # write multiple rows
+            for deck in decks:
+                d=[deck.id,deck.name,deck.average_score,deck.last_review_time,deck.user_id]
+                writer.writerow(d)
+            link="/"+filename
+            return jsonify({"link":link})
+
+api.add_resource(IEDeckResource,"/iedeck")        
+
+
+
+#-----Import-Export Card---------
+class IECardResource(Resource):
+    @token_required
+    def get(self):
+        check_user=User.query.filter_by(id=USER_ID).first()
+        cards=check_user.cards
+        if len(cards)==0:
+            abort(401,"No Card found")
+        # open the file in the write mode
+        filename="static/temp/"+str(USER_ID)+"-cards.csv"
+        with open(filename, 'w', encoding='UTF8', newline='') as f:
+            writer = csv.writer(f)
+
+            # write the header
+            header=['id','question','answer','last_review_time','next_review_time','score','deck_id','user_id']
+            writer.writerow(header)
+
+            # write multiple rows
+            for card in cards:
+                d=[card.id,card.question,card.answer,card.last_review_time,card.next_review_time,card.score,card.deck_id,card.user_id]
+                writer.writerow(d)
+            link="/"+filename
+            return jsonify({"link":link})
+
+api.add_resource(IECardResource,"/iecard")  
+
 if __name__ == '__main__':
     app.run(debug=True)

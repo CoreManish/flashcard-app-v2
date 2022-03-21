@@ -70,5 +70,4 @@ db.session.add(Card(question="Liquid metal", answer='Hg', user_id="2", deck_id='
 db.session.add(Card(question="Best book of algebra", answer='Gilbert', user_id="2", deck_id='4',next_review_time=0,score=0))
 db.session.commit()
 
-
 """

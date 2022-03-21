@@ -29,7 +29,6 @@
         .card-deck {
             margin: 20px auto;
         }
-
         
 
     </style>
@@ -50,9 +49,11 @@
                         <router-link to="/decks" class="nav-item nav-link text-white">Decks</router-link>
                         <router-link to="/cards" class="nav-item nav-link text-white">Cards</router-link>
                         <router-link to="/review" class="nav-item nav-link text-white">Review</router-link>
+                        <router-link to="/ie" class="nav-item nav-link text-white">Export-Import</router-link>
                         <router-link to="/login" class="nav-item nav-link rounded-pill btn bg-warning text-white" v-if="!loginStatus">Login
                         </router-link>
                         <button href="/logout" class="nav-item nav-link rounded-pill btn bg-warning text-white" v-else @click="logout">Logout</button>
+                        
                     </div>
                 </div>
             </nav>

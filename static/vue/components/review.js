@@ -39,12 +39,12 @@ export const review = Vue.component("review", {
       question: "",
       answer: "",
       last_review_time: "",
-      last_review_date:"",
+      last_review_date: "",
       score: "",
-      newScore:"",
+      newScore: "",
       cardFound: false,
       showAnswer: false,
-      err:""
+      err: ""
     }
   },
   computed: {
@@ -54,31 +54,31 @@ export const review = Vue.component("review", {
       }
     },
   },
-  watch:{
-    last_review_time(){
+  watch: {
+    last_review_time() {
       let date = new Date(Number(this.last_review_time));
-      this.last_review_date= date
+      this.last_review_date = date
     }
   },
   methods: {
     async nextCard() {
-      
+
       //update current card
       if (this.id) {
-        if (!this.newScore){
-          return this.err="Select Difficulty"
+        if (!this.newScore) {
+          return this.err = "Select Difficulty"
         }
         const d = new Date();
-        const last_review_time=d.getTime()
-        let next_review_time=last_review_time;
-        if(this.newScore==10){
-          next_review_time=last_review_time+600000
-        }else if (this.newScore==5){
-          next_review_time=last_review_time+300000
-        }else if(this.newScore==2){
-          next_review_time=last_review_time+120000
+        const last_review_time = d.getTime()
+        let next_review_time = last_review_time;
+        if (this.newScore == 10) {
+          next_review_time = last_review_time + 600000
+        } else if (this.newScore == 5) {
+          next_review_time = last_review_time + 300000
+        } else if (this.newScore == 2) {
+          next_review_time = last_review_time + 120000
         }
-        const data = { id: this.id,question:this.question,answer:this.answer,score:this.newScore,last_review_time:last_review_time,next_review_time:next_review_time };
+        const data = { id: this.id, question: this.question, answer: this.answer, score: this.newScore, last_review_time: last_review_time, next_review_time: next_review_time };
         //const data = { id: this.id, question: this.question, answer: this.answer, score: this.difficulty };
         const deck_id = localStorage.deck_id;
         let url = "/card/" + deck_id + "?token="
@@ -92,6 +92,8 @@ export const review = Vue.component("review", {
           });
           if (response.ok) {
             //console.log(response)
+            this.newScore=0
+            this.err=""
           }
         } catch (err) { console.log(err) }
       }
@@ -119,6 +121,9 @@ export const review = Vue.component("review", {
     },
   },
   mounted() {
+    if (!localStorage.token) {
+      return window.location.replace("/#/login")
+    }
     if (!localStorage.deck_id || !localStorage.deck_name) {
       alert("Sorry No deck selected");
       window.location.replace("/#/decks")
