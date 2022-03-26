@@ -29,13 +29,13 @@ export const ie = Vue.component("ie", {
         </div>
         <p v-show="err" class="alert alert-danger">{{err}}</p>
       </div>`,
-      data(){
-        return {
-          err:"",
-          deck_link:"",
-          card_link:""
-        }
-      },
+  data() {
+    return {
+      err: "",
+      deck_link: "",
+      card_link: ""
+    }
+  },
   methods: {
     async deckExport() {
       let url = "/iedeck?token="
@@ -45,9 +45,9 @@ export const ie = Vue.component("ie", {
         const response = await fetch(url);
         const result = await response.json();
         if (!response.ok) {
-          return this.err=result.message
+          return this.err = result.message
         }
-        this.deck_link=result.link
+        this.deck_link = result.link
       } catch (err) { console.log(err) }
     },
     async cardExport() {
@@ -58,9 +58,9 @@ export const ie = Vue.component("ie", {
         const response = await fetch(url);
         const result = await response.json();
         if (!response.ok) {
-          return this.err=result.message
+          return this.err = result.message
         }
-        this.card_link=result.link
+        this.card_link = result.link
       } catch (err) { console.log(err) }
     }
   },
