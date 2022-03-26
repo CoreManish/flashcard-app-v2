@@ -13,7 +13,7 @@ db = SQLAlchemy(app)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
-    password = db.Column(db.String(80), nullable=False)
+    password = db.Column(db.String(200), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     # decks is not a column but is useful for finding all decks of a user
@@ -52,7 +52,8 @@ class Card(db.Model):
 """
 # Run this file for the first time only
 db.create_all()
-
+"""
+"""
 db.session.add(User(username="manish", password="12345",name="Manish Yadav", email="manish@gmail.com"))
 db.session.add(User(username="john", password="123456",name="JohnDoe", email="john@example.com"))
 db.session.commit()

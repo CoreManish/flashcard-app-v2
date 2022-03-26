@@ -1,9 +1,10 @@
 export const home = Vue.component("home", {
   template: `
-    <div>
-      <div class="card-deck">
-        <div v-for="deck in decks" class="eachdata">
-          <eachdata v-bind:c="city"></eachdata>
+    <div class="card-deck">
+      <div class="card" style="width:20rem">
+        <div class="card-body">
+          <p>Hi, This is a flash card application.</p>
+          <p>You can create decks and cards.</p>
         </div>
       </div>
     </div>`,

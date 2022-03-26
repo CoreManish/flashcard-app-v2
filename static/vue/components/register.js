@@ -22,18 +22,30 @@ export const register = Vue.component("register", {
     },
     methods: {
         async signup() {
-            const data={name:this.name, email:this.email,username:this.username,password:this.password};
-            try{
-                const response=await fetch("/register",{
-                    method:"POST",
+            if (!this.name){
+                return this.err="Please enter your name"
+            }
+            if (!this.email){
+                return this.err="Please enter your email"
+            }
+            if (!this.username){
+                return this.err="Please enter your username"
+            }
+            if (!this.password){
+                return this.err="Please enter strong password"
+            }
+            const data = { name: this.name, email: this.email, username: this.username, password: this.password };
+            try {
+                const response = await fetch("/register", {
+                    method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data)
                 });
                 const result = await response.json();
                 this.err = result.message
-                
-                
-            }catch(err){console.log(err)}
+
+
+            } catch (err) { console.log(err) }
         }
     }
 

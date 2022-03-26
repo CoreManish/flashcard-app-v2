@@ -1,16 +1,22 @@
+from models import *
+from flask import jsonify, render_template, request
 from flask_restful import Api, Resource, abort, marshal_with, reqparse, fields
 import time
+from datetime import datetime, timedelta
 import sqlite3
 from functools import wraps
 import jwt
-from email import message
-from models import *
-from flask import jsonify, redirect, render_template, request
-from datetime import datetime, timedelta
 
+#import flask-caching
+from flask_caching import Cache
+#import redis configuration
+import redisconfig
+# set redis configuration to app config
+app.config.from_object(redisconfig)
+#make cache instance of Cache with inheritance of app
+cache=Cache(app)
 
 app.config['SECRET_KEY'] = "thisissecret"
-
 
 def token_required(f):
     @wraps(f)
@@ -34,15 +40,17 @@ def token_required(f):
 
     return decorated
 
-
+#-------Root end point--------
 @app.route("/")
+@cache.cached(timeout=60)
 def index():
+    print("index function was called because data is not in redis cache")
     return render_template("index.html")
 
 
 api = Api(app)
 
-
+import hashlib
 # -------Login--------------
 
 class Login(Resource):
@@ -54,9 +62,12 @@ class Login(Resource):
             "password", type=str, help="Password is required", required=True)
 
         data = format_user_login.parse_args()
-
+        # plain text to byte
+        bp=hashlib.sha256(data['password'].encode())
+        #convert to equivalent hexadecimal value
+        password=bp.hexdigest()
         check_record = User.query.filter_by(
-            username=data['username'], password=data['password']).first()
+            username=data['username'], password=password).first()
 
         if check_record is None:
             abort(401, message="Not registered")
@@ -95,8 +106,13 @@ class Register(Resource):
         if check_record_by_username:
             abort(409, message="Username exists")
 
+        # plain text to byte
+        bp=hashlib.sha256(data['password'].encode())
+        #convert to equivalent hexadecimal value
+        password=bp.hexdigest()
+
         new_user = User(
-            username=data['username'], password=data['password'], name=data['name'], email=data['email'])
+            username=data['username'], password=password, name=data['name'], email=data['email'])
         db.session.add(new_user)
         db.session.commit()
         return {"message": "Registered successfully"}, 201
@@ -377,7 +393,7 @@ class IEDeckResource(Resource):
         check_user=User.query.filter_by(id=USER_ID).first()
         decks=check_user.decks
         if len(decks)==0:
-            abort(401,"No deck found")
+            abort(401,message="No deck found")
         # open the file in the write mode
         filename="static/temp/"+str(USER_ID)+"-decks.csv"
         with open(filename, 'w', encoding='UTF8', newline='') as f:
@@ -405,7 +421,7 @@ class IECardResource(Resource):
         check_user=User.query.filter_by(id=USER_ID).first()
         cards=check_user.cards
         if len(cards)==0:
-            abort(401,"No Card found")
+            abort(401,message="No Card found")
         # open the file in the write mode
         filename="static/temp/"+str(USER_ID)+"-cards.csv"
         with open(filename, 'w', encoding='UTF8', newline='') as f:

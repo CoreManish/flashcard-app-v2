@@ -18,6 +18,12 @@ export const login = Vue.component("login", {
     },
     methods: {
         async signin() {
+            if (!this.username){
+                return this.err="Please enter your username"
+            }
+            if (!this.password){
+                return this.err="Please enter your password"
+            }
             const data = { username: this.username, password: this.password };
             try {
                 const response = await fetch("/login", {
