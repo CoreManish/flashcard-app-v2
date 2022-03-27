@@ -16,6 +16,8 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
+    webhook_url=db.Column(db.String(250))
+    last_review_time = db.Column(db.Integer)
     # decks is not a column but is useful for finding all decks of a user
     # when you select a user say user1 then write user1.decks to see all decks of this user
     # user1=User.query.filter_by(username='manish').first()

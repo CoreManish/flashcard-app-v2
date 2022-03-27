@@ -6,18 +6,67 @@ from datetime import datetime, timedelta
 import sqlite3
 from functools import wraps
 import jwt
+from json import dumps
+from httplib2 import Http
+import hashlib
+import csv
 
-#import flask-caching
-from flask_caching import Cache
-#import redis configuration
-import redisconfig
-# set redis configuration to app config
-app.config.from_object(redisconfig)
-#make cache instance of Cache with inheritance of app
+
+#-------------Caching start--------
+from redis_config import *
+app.config.from_mapping(config)
 cache=Cache(app)
+#--------Caching end---------------
 
+#-----------Celery start----------
+from celery_config import make_celery
+celery=make_celery(app)
+#-------celery end----------------
+
+
+#----------ALERT TO REVIEW START------------
+def sendAlert():
+    sendAlertAsync.delay()
+    return "Your task has been sent to worker"
+
+@celery.task()
+def sendAlertAsync():
+    t = time.time()
+    t = int(t*1000)  # timestamp in milliseconds
+    users=User.query.all()
+    for user in users:
+        if user.webhook_url and user.last_review_time:
+            #send alert to those user who revised 15 minutes before before
+            if user.last_review_time < (t-900000):
+                url=user.webhook_url
+
+                bot_message = {
+                    'text' : 'Please revise today!'}
+
+                message_headers = {'Content-Type': 'application/json; charset=UTF-8'}
+
+                http_obj = Http()
+
+                response = http_obj.request(
+                    uri=url,
+                    method='POST',
+                    headers=message_headers,
+                    body=dumps(bot_message),
+           )
+    return "Alert to all user has been sent asynchronously" 
+
+#make sure celery working is running
+# run celery
+#celery -A main.celery worker --loglevel=info
+# because we are using redis as celery queue and celery result backend
+#run redis server, however redis-server always in run mode
+# redis-server
+
+#----------ALERT TO REVIEW END------------
+
+
+#-------------JWT Token check START------------
 app.config['SECRET_KEY'] = "thisissecret"
-
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -39,20 +88,23 @@ def token_required(f):
         return f(*args, **kwargs)
 
     return decorated
+#-------jwt token check END-----------
 
-#-------Root end point--------
+
+#-------Root endpoint start-----------
 @app.route("/")
 @cache.cached(timeout=60)
 def index():
     print("index function was called because data is not in redis cache")
     return render_template("index.html")
+#-------root endpoint end------------
 
-
+#-------restful api start------
 api = Api(app)
+#-------restful api end--------
 
-import hashlib
-# -------Login--------------
 
+# -------Login start--------------
 class Login(Resource):
     def post(self):
         format_user_login = reqparse.RequestParser()
@@ -70,17 +122,15 @@ class Login(Resource):
             username=data['username'], password=password).first()
 
         if check_record is None:
-            abort(401, message="Not registered")
+            abort(401, message="Wrong credentials")
         token = jwt.encode({'USER_ID': check_record.id, 'exp': datetime.utcnow(
         ) + timedelta(minutes=600)}, app.config['SECRET_KEY'])
         return {"token": token.decode('utf-8')}, 200
 
-
 api.add_resource(Login, '/login')
+#------------Login end-------------
 
-
-# ------User Registration------
-
+# ------User Registration start------
 class Register(Resource):
     def post(self):
 
@@ -93,6 +143,9 @@ class Register(Resource):
             "username", type=str, help="Username is required", required=True)
         format_user_register.add_argument(
             "password", type=str, help="Password is required", required=True)
+        format_user_register.add_argument(
+            "webhook_url", type=str, help="Webhook URL is required", required=True)
+        
 
         data = format_user_register.parse_args()
 
@@ -112,16 +165,16 @@ class Register(Resource):
         password=bp.hexdigest()
 
         new_user = User(
-            username=data['username'], password=password, name=data['name'], email=data['email'])
+            username=data['username'], password=password, name=data['name'], email=data['email'],webhook_url=data['webhook_url'])
         db.session.add(new_user)
         db.session.commit()
         return {"message": "Registered successfully"}, 201
 
 
 api.add_resource(Register, '/register')
+# ------User Registration end------
 
-
-# ----------Deck------------------
+# ----------Deck api start------------------
 
 deck_output_format = {
     "id": fields.Integer,
@@ -204,11 +257,9 @@ class DeckResource(Resource):
 
 
 api.add_resource(DeckResource, '/deck')
+# ----------DECK API END------------------
 
-
-# ---------Card-------------------
-
-
+# ---------CARD API START-------------------
 card_output_format = {
     "id": fields.Integer,
     "question": fields.String,
@@ -286,6 +337,11 @@ class CardResource(Resource):
             "score", type=int, help="Score of this card")
         data = card_input_format.parse_args()
 
+        #------check user existence-----
+        check_user=User.query.filter_by(id=USER_ID).first()
+        if check_user is None:
+            abort(403,message="Sorry user doesn't exist")
+
         # ----Check deck existence ----
         check_deck = Deck.query.filter_by(id=deck_id, user_id=USER_ID).first()
         if check_deck is None:
@@ -303,6 +359,7 @@ class CardResource(Resource):
         if data['last_review_time']:
             check_card.last_review_time = data['last_review_time']
             check_deck.last_review_time=data['last_review_time']
+            check_user.last_review_time=data['last_review_time']
         if data['next_review_time']:
             check_card.next_review_time=data['next_review_time']
         if data['score']:
@@ -345,7 +402,9 @@ class CardResource(Resource):
 
 api.add_resource(CardResource, '/card/<int:deck_id>')
 
+# ---------CARD API END-------------------
 
+#---------One card API at a time API START---------
 class OneCardResource(Resource):
     @token_required
     @marshal_with(card_output_format)
@@ -383,10 +442,10 @@ class OneCardResource(Resource):
 
 
 api.add_resource(OneCardResource, "/onecard/<int:deck_id>")
+#---------One card at a time API END---------
 
 
-import csv
-#-----Import-Export Deck---------
+#-----Import-Export Deck API START---------
 class IEDeckResource(Resource):
     @token_required
     def get(self):
@@ -411,10 +470,10 @@ class IEDeckResource(Resource):
             return jsonify({"link":link})
 
 api.add_resource(IEDeckResource,"/iedeck")        
+#-----Import-Export Deck API END---------
 
 
-
-#-----Import-Export Card---------
+#-----Import-Export API Card START---------
 class IECardResource(Resource):
     @token_required
     def get(self):
@@ -438,7 +497,10 @@ class IECardResource(Resource):
             link="/"+filename
             return jsonify({"link":link})
 
-api.add_resource(IECardResource,"/iecard")  
+api.add_resource(IECardResource,"/iecard")
+#-----Import-Export API Card END---------
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
