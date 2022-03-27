@@ -41,7 +41,7 @@ def sendAlertAsync():
                 url=user.webhook_url
 
                 bot_message = {
-                    'text' : 'Please revise today!'}
+                    'text' : 'Please revise deck and card today!'}
 
                 message_headers = {'Content-Type': 'application/json; charset=UTF-8'}
 
@@ -52,7 +52,7 @@ def sendAlertAsync():
                     method='POST',
                     headers=message_headers,
                     body=dumps(bot_message),
-           )
+                    )
     return "Alert to all user has been sent asynchronously" 
 
 #make sure celery working is running

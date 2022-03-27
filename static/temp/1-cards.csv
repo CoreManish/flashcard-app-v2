@@ -1,6 +1,2 @@
 id,question,answer,last_review_time,next_review_time,score,deck_id,user_id
-1,what is PCA,Principal component analysis,1647533747480,1647534047480,5,1,1
-3,what is awk,A programming language for text interpretation ,1647534027079,1647534627079,10,2,1
-6,SVD,singular value decomposition,1647533762101,1647534362101,10,1,1
-7,what is VI?,A command-line editor for Linux,1647534241509,1647534541509,5,2,1
-8,What is emac,command line editor for apple laptop,0,0,0,2,1
+1,PCA,Principle component analysis,1648408504102,1648408624102,2,1,1
