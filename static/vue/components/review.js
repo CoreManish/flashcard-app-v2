@@ -1,7 +1,7 @@
 export const review = Vue.component("review", {
   template: `
       <div>
-        <div class="card" style="width: 50rem;">
+        <div class="card" style="width: 50rem;margin-top:20px;">
         <div v-if="cardFound">
           <div class="card-body">
             <h4>Deck: {{deck_name}}</h4>

@@ -1,34 +1,41 @@
 export const ie = Vue.component("ie", {
   template: `
   <div>
-  <div class="card-deck mx-auto" style="margin-top:20px;">
-        
-        <div id="deck-import" class="card" style="width: 20rem;">
-          <h5>Import Deck from csv</h5>
-          <input type="file" name="csvfile" id="">
-          <button class="btn btn-info">Upload</button>
-        </div>
+    <div class="card-deck mx-auto" style="margin-top:20px;">
+          <div id="deck-import" class="card" style="width: 20rem;">
+            <div class="card-body">
+              <h5>Import Deck from csv</h5>
+              <input type="file" name="csvfile" id=""><br><br>
+              <button class="btn btn-info">Upload</button>
+            </div> 
+          </div>
 
-        <div id="card-import" class="card" style="width: 20rem;">
-          <h5>Import Card from csv</h5>
-          <input type="file" name="csvfile" id="">
-          <button class="btn btn-info">Upload</button>
-        </div>
+          <div id="card-import" class="card" style="width: 20rem;">
+            <div class="card-body">
+              <h5>Import Card from csv</h5>
+              <input type="file" name="csvfile" id=""><br><br>
+              <button class="btn btn-info">Upload</button>
+            </div>
+          </div>
 
-        <div id="deck-export" class="card" style="width: 20rem;">
-          <h5>Export Deck as csv</h5>
-          <button @click="deckExport" class="btn btn-success">Download Deck</button>
-          <a v-show="deck_link" v-bind:href="deck_link">Link</a>
-        </div>
+          <div id="deck-export" class="card" style="width: 20rem;">
+          <div class="card-body">
+            <h5>Export all Decks as csv</h5>
+            <button @click="deckExport" class="btn btn-success">Download Deck</button>
+            <a v-show="deck_link" v-bind:href="deck_link">Link</a>
+          </div>
+          </div>
 
-        <div id="card-export" class="card" style="width: 20rem;">
-          <h5>Export Card as csv</h5>
-          <button @click="cardExport" class="btn btn-success">Download Card</button>
-          <a v-show="card_link" v-bind:href="card_link">Link</a>
-        </div>
-        </div>
-        <p v-show="err" class="alert alert-danger">{{err}}</p>
-      </div>`,
+          <div id="card-export" class="card" style="width: 20rem;">
+            <div class="card-body">
+              <h5>Export all Cards as csv</h5>
+              <button @click="cardExport" class="btn btn-success">Download Card</button>
+              <a v-show="card_link" v-bind:href="card_link">Link</a>
+            </div>
+          </div>
+    </div>
+    <p v-show="err" class="alert alert-danger">{{err}}</p>
+  </div>`,
   data() {
     return {
       err: "",

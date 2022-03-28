@@ -1,3 +1,5 @@
+from celery_config import make_celery
+from unittest import result
 from models import *
 from flask import jsonify, render_template, request
 from flask_restful import Api, Resource, abort, marshal_with, reqparse, fields
@@ -10,40 +12,41 @@ from json import dumps
 from httplib2 import Http
 import hashlib
 import csv
+import schedule
 
-
-#-------------Caching start--------
+# -------------Caching start--------
 from redis_config import *
 app.config.from_mapping(config)
-cache=Cache(app)
-#--------Caching end---------------
+cache = Cache(app)
+# --------Caching end---------------
 
-#-----------Celery start----------
-from celery_config import make_celery
-celery=make_celery(app)
-#-------celery end----------------
+# -----------Celery start----------
+celery = make_celery(app)
+# -------celery end----------------
 
 
-#----------ALERT TO REVIEW START------------
+# ----------ALERT USER TO REVIEW START------------
 def sendAlert():
     sendAlertAsync.delay()
     return "Your task has been sent to worker"
+
 
 @celery.task()
 def sendAlertAsync():
     t = time.time()
     t = int(t*1000)  # timestamp in milliseconds
-    users=User.query.all()
+    review_interval = 24*60*60*1000  # if reviewd 24hr before
+    users = User.query.all()
     for user in users:
         if user.webhook_url and user.last_review_time:
-            #send alert to those user who revised 15 minutes before before
-            if user.last_review_time < (t-900000):
-                url=user.webhook_url
+            if user.last_review_time < (t-review_interval):
+                url = user.webhook_url
 
                 bot_message = {
-                    'text' : 'Please revise deck and card today!'}
+                    'text': 'Please revise deck and card today!'}
 
-                message_headers = {'Content-Type': 'application/json; charset=UTF-8'}
+                message_headers = {
+                    'Content-Type': 'application/json; charset=UTF-8'}
 
                 http_obj = Http()
 
@@ -52,21 +55,28 @@ def sendAlertAsync():
                     method='POST',
                     headers=message_headers,
                     body=dumps(bot_message),
-                    )
-    return "Alert to all user has been sent asynchronously" 
+                )
+    return "Alert to all user has been sent asynchronously"
 
-#make sure celery working is running
+# make sure celery is running
 # run celery
-#celery -A main.celery worker --loglevel=info
+# celery -A main.celery worker --loglevel=info
 # because we are using redis as celery queue and celery result backend
-#run redis server, however redis-server always in run mode
+# run redis server (however redis-server is always in run mode)
 # redis-server
 
-#----------ALERT TO REVIEW END------------
+# schedule.every().day.at("01:00").do(sendAlert,'It is 01:00')
+# while True:
+#     schedule.run_pending()
+#     time.sleep(60) # wait one minute
+
+# ----------ALERT USER TO REVIEW END------------
 
 
-#-------------JWT Token check START------------
+# -------------JWT Token check START------------
 app.config['SECRET_KEY'] = "thisissecret"
+
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -88,20 +98,21 @@ def token_required(f):
         return f(*args, **kwargs)
 
     return decorated
-#-------jwt token check END-----------
+# -------jwt token check END-----------
 
 
-#-------Root endpoint start-----------
+# -------Root endpoint start-----------
 @app.route("/")
 @cache.cached(timeout=60)
 def index():
     print("index function was called because data is not in redis cache")
     return render_template("index.html")
-#-------root endpoint end------------
+# -------root endpoint end------------
 
-#-------restful api start------
+
+# -------restful api start------
 api = Api(app)
-#-------restful api end--------
+# -------restful api end--------
 
 
 # -------Login start--------------
@@ -115,9 +126,9 @@ class Login(Resource):
 
         data = format_user_login.parse_args()
         # plain text to byte
-        bp=hashlib.sha256(data['password'].encode())
-        #convert to equivalent hexadecimal value
-        password=bp.hexdigest()
+        bp = hashlib.sha256(data['password'].encode())
+        # convert to equivalent hexadecimal value
+        password = bp.hexdigest()
         check_record = User.query.filter_by(
             username=data['username'], password=password).first()
 
@@ -127,10 +138,13 @@ class Login(Resource):
         ) + timedelta(minutes=600)}, app.config['SECRET_KEY'])
         return {"token": token.decode('utf-8')}, 200
 
+
 api.add_resource(Login, '/login')
-#------------Login end-------------
+# ------------Login end-------------
 
 # ------User Registration start------
+
+
 class Register(Resource):
     def post(self):
 
@@ -145,7 +159,6 @@ class Register(Resource):
             "password", type=str, help="Password is required", required=True)
         format_user_register.add_argument(
             "webhook_url", type=str, help="Webhook URL is required", required=True)
-        
 
         data = format_user_register.parse_args()
 
@@ -160,12 +173,12 @@ class Register(Resource):
             abort(409, message="Username exists")
 
         # plain text to byte
-        bp=hashlib.sha256(data['password'].encode())
-        #convert to equivalent hexadecimal value
-        password=bp.hexdigest()
+        bp = hashlib.sha256(data['password'].encode())
+        # convert to equivalent hexadecimal value
+        password = bp.hexdigest()
 
         new_user = User(
-            username=data['username'], password=password, name=data['name'], email=data['email'],webhook_url=data['webhook_url'])
+            username=data['username'], password=password, name=data['name'], email=data['email'], webhook_url=data['webhook_url'])
         db.session.add(new_user)
         db.session.commit()
         return {"message": "Registered successfully"}, 201
@@ -313,7 +326,7 @@ class CardResource(Resource):
 
         # ---- Create new card----
         new_card = Card(question=data['question'], answer=data['answer'],
-                        last_review_time=0, next_review_time=0,score=0, deck_id=deck_id, user_id=USER_ID)
+                        last_review_time=0, next_review_time=0, score=0, deck_id=deck_id, user_id=USER_ID)
         db.session.add(new_card)
         db.session.commit()
         return new_card, 201
@@ -337,10 +350,10 @@ class CardResource(Resource):
             "score", type=int, help="Score of this card")
         data = card_input_format.parse_args()
 
-        #------check user existence-----
-        check_user=User.query.filter_by(id=USER_ID).first()
+        # ------check user existence-----
+        check_user = User.query.filter_by(id=USER_ID).first()
         if check_user is None:
-            abort(403,message="Sorry user doesn't exist")
+            abort(403, message="Sorry user doesn't exist")
 
         # ----Check deck existence ----
         check_deck = Deck.query.filter_by(id=deck_id, user_id=USER_ID).first()
@@ -358,22 +371,23 @@ class CardResource(Resource):
         check_card.answer = data['answer']
         if data['last_review_time']:
             check_card.last_review_time = data['last_review_time']
-            check_deck.last_review_time=data['last_review_time']
-            check_user.last_review_time=data['last_review_time']
+            check_deck.last_review_time = data['last_review_time']
+            check_user.last_review_time = data['last_review_time']
         if data['next_review_time']:
-            check_card.next_review_time=data['next_review_time']
+            check_card.next_review_time = data['next_review_time']
         if data['score']:
-            current_score=check_card.score
-            current_avg_deck_score=check_deck.average_score
+            current_score = check_card.score
+            current_avg_deck_score = check_deck.average_score
             if current_avg_deck_score is None:
-                current_avg_deck_score=0
-            total_card=len(check_deck.cards)
+                current_avg_deck_score = 0
+            total_card = len(check_deck.cards)
             print(total_card)
-            new_avg_deck_score=(current_avg_deck_score*total_card - current_score + data['score'])/total_card
+            new_avg_deck_score = (
+                current_avg_deck_score*total_card - current_score + data['score'])/total_card
             check_card.score = data['score']
-            check_deck.average_score=new_avg_deck_score
+            check_deck.average_score = new_avg_deck_score
         db.session.commit()
-      
+
         return check_card
 
     @token_required
@@ -404,7 +418,9 @@ api.add_resource(CardResource, '/card/<int:deck_id>')
 
 # ---------CARD API END-------------------
 
-#---------One card API at a time API START---------
+# ---------One card API at a time API START---------
+
+
 class OneCardResource(Resource):
     @token_required
     @marshal_with(card_output_format)
@@ -424,7 +440,7 @@ class OneCardResource(Resource):
         conn = sqlite3.connect("project.sqlite")
         cur = conn.cursor()
         query = """SELECT id,question,answer,last_review_time,score,deck_id,user_id FROM card WHERE deck_id=? AND user_id=? AND next_review_time<? ORDER BY RANDOM() LIMIT 1"""
-        cur.execute(query, (deck_id, USER_ID,t))
+        cur.execute(query, (deck_id, USER_ID, t))
         row = cur.fetchone()
         if row is None:
             abort(404, message="No card left to review now! You can wait for some time")
@@ -437,69 +453,106 @@ class OneCardResource(Resource):
             "deck_id": row[5],
             "user_id": row[6]
         }
-        #print(card_output_format)
+        # print(card_output_format)
         return card_output_format
 
 
 api.add_resource(OneCardResource, "/onecard/<int:deck_id>")
-#---------One card at a time API END---------
+# ---------One card at a time API END---------
 
 
-#-----Import-Export Deck API START--------- 
+# -----Import-Export Deck API START---------
 class IEDeckResource(Resource):
     @token_required
     def get(self):
-        check_user=User.query.filter_by(id=USER_ID).first()
-        decks=check_user.decks
-        if len(decks)==0:
-            abort(401,message="No deck found")
+        check_user = User.query.filter_by(id=USER_ID).first()
+        decks = check_user.decks
+        if len(decks) == 0:
+            abort(401, message="No deck found")
         # open the file in the write mode
-        filename="static/temp/"+str(USER_ID)+"-decks.csv"
+        filename = "static/temp/"+str(USER_ID)+"-decks.csv"
         with open(filename, 'w', encoding='UTF8', newline='') as f:
             writer = csv.writer(f)
 
             # write the header
-            header=['id','name','average_score','last_review_time','user_id']
+            header = ['id', 'name', 'average_score',
+                'last_review_time', 'user_id']
             writer.writerow(header)
 
             # write multiple rows
             for deck in decks:
-                d=[deck.id,deck.name,deck.average_score,deck.last_review_time,deck.user_id]
+                d = [deck.id, deck.name, deck.average_score,
+                    deck.last_review_time, deck.user_id]
                 writer.writerow(d)
-            link="/"+filename
-            return jsonify({"link":link})
-
-api.add_resource(IEDeckResource,"/iedeck")        
-#-----Import-Export Deck API END---------
+            link = "/"+filename
+            return jsonify({"link": link})
 
 
-#-----Import-Export API Card START---------
+api.add_resource(IEDeckResource, "/iedeck")
+# -----Import-Export Deck API END---------
+
+
+# -----Import-Export API Card START---------
 class IECardResource(Resource):
     @token_required
     def get(self):
-        check_user=User.query.filter_by(id=USER_ID).first()
-        cards=check_user.cards
-        if len(cards)==0:
-            abort(401,message="No Card found")
+        check_user = User.query.filter_by(id=USER_ID).first()
+        cards = check_user.cards
+        if len(cards) == 0:
+            abort(401, message="No Card found")
         # open the file in the write mode
-        filename="static/temp/"+str(USER_ID)+"-cards.csv"
+        filename = "static/temp/"+str(USER_ID)+"-cards.csv"
         with open(filename, 'w', encoding='UTF8', newline='') as f:
             writer = csv.writer(f)
 
             # write the header
-            header=['id','question','answer','last_review_time','next_review_time','score','deck_id','user_id']
+            header = ['id', 'question', 'answer', 'last_review_time',
+                'next_review_time', 'score', 'deck_id', 'user_id']
             writer.writerow(header)
 
             # write multiple rows
             for card in cards:
-                d=[card.id,card.question,card.answer,card.last_review_time,card.next_review_time,card.score,card.deck_id,card.user_id]
+                d = [card.id, card.question, card.answer, card.last_review_time,
+                    card.next_review_time, card.score, card.deck_id, card.user_id]
                 writer.writerow(d)
-            link="/"+filename
-            return jsonify({"link":link})
+            link = "/"+filename
+            return jsonify({"link": link})
 
-api.add_resource(IECardResource,"/iecard")
-#-----Import-Export API Card END---------
+api.add_resource(IECardResource, "/iecard")
 
+# -----Import-Export API Card END---------
+
+
+# @app.route("/iecard")
+# @token_required
+# def exportCard():
+#     result = exportCardAsync.delay()
+#     return result.wait()
+
+
+# @celery.task()
+# def exportCardAsync():
+#     check_user = User.query.filter_by(id=USER_ID).first()
+#     cards = check_user.cards
+#     if len(cards) == 0:
+#         abort(401, message="No Card found")
+#     # open the file in the write mode
+#     filename = "static/temp/"+str(USER_ID)+"-cards.csv"
+#     with open(filename, 'w', encoding='UTF8', newline='') as f:
+#         writer = csv.writer(f)
+
+#         # write the header
+#         header = ['id', 'question', 'answer', 'last_review_time',
+#             'next_review_time', 'score', 'deck_id', 'user_id']
+#         writer.writerow(header)
+
+#         # write multiple rows
+#         for card in cards:
+#             d = [card.id, card.question, card.answer, card.last_review_time,
+#                 card.next_review_time, card.score, card.deck_id, card.user_id]
+#             writer.writerow(d)
+#         link = "/"+filename
+#         return jsonify({"link": link})
 
 
 if __name__ == '__main__':
