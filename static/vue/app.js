@@ -5,7 +5,7 @@ import { cards } from "./components/cards.js";
 import { login } from "./components/login.js";
 import { register } from "./components/register.js";
 import { review } from "./components/review.js";
-import { ie } from "./components/export-import.js";
+import { export_csv } from "./components/export_csv.js";
 
 // routing code starts
 const routes = [
@@ -15,7 +15,7 @@ const routes = [
     { path: "/review", component: review },
     { path: "/login", component:login},
     { path : "/register", component:register},
-    { path : "/ie", component:ie}
+    { path : "/export", component:export_csv}
 ];
 const router = new VueRouter({
     routes: routes

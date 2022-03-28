@@ -1,5 +1,3 @@
-from celery_config import make_celery
-from unittest import result
 from models import *
 from flask import jsonify, render_template, request
 from flask_restful import Api, Resource, abort, marshal_with, reqparse, fields
@@ -8,69 +6,14 @@ from datetime import datetime, timedelta
 import sqlite3
 from functools import wraps
 import jwt
-from json import dumps
-from httplib2 import Http
 import hashlib
 import csv
-import schedule
 
 # -------------Caching start--------
 from redis_config import *
 app.config.from_mapping(config)
 cache = Cache(app)
 # --------Caching end---------------
-
-# -----------Celery start----------
-celery = make_celery(app)
-# -------celery end----------------
-
-
-# ----------ALERT USER TO REVIEW START------------
-def sendAlert():
-    sendAlertAsync.delay()
-    return "Your task has been sent to worker"
-
-
-@celery.task()
-def sendAlertAsync():
-    t = time.time()
-    t = int(t*1000)  # timestamp in milliseconds
-    review_interval = 24*60*60*1000  # if reviewd 24hr before
-    users = User.query.all()
-    for user in users:
-        if user.webhook_url and user.last_review_time:
-            if user.last_review_time < (t-review_interval):
-                url = user.webhook_url
-
-                bot_message = {
-                    'text': 'Please revise deck and card today!'}
-
-                message_headers = {
-                    'Content-Type': 'application/json; charset=UTF-8'}
-
-                http_obj = Http()
-
-                response = http_obj.request(
-                    uri=url,
-                    method='POST',
-                    headers=message_headers,
-                    body=dumps(bot_message),
-                )
-    return "Alert to all user has been sent asynchronously"
-
-# make sure celery is running
-# run celery
-# celery -A main.celery worker --loglevel=info
-# because we are using redis as celery queue and celery result backend
-# run redis server (however redis-server is always in run mode)
-# redis-server
-
-# schedule.every().day.at("01:00").do(sendAlert,'It is 01:00')
-# while True:
-#     schedule.run_pending()
-#     time.sleep(60) # wait one minute
-
-# ----------ALERT USER TO REVIEW END------------
 
 
 # -------------JWT Token check START------------

@@ -1,23 +1,8 @@
-export const ie = Vue.component("ie", {
+export const export_csv = Vue.component("export_csv", {
   template: `
   <div>
-    <div class="card-deck mx-auto" style="margin-top:20px;">
-          <div id="deck-import" class="card" style="width: 20rem;">
-            <div class="card-body">
-              <h5>Import Deck from csv</h5>
-              <input type="file" name="csvfile" id=""><br><br>
-              <button class="btn btn-info">Upload</button>
-            </div> 
-          </div>
-
-          <div id="card-import" class="card" style="width: 20rem;">
-            <div class="card-body">
-              <h5>Import Card from csv</h5>
-              <input type="file" name="csvfile" id=""><br><br>
-              <button class="btn btn-info">Upload</button>
-            </div>
-          </div>
-
+    <div class="card-deck" style="margin-top:20px;">
+         
           <div id="deck-export" class="card" style="width: 20rem;">
           <div class="card-body">
             <h5>Export all Decks as csv</h5>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h2>Hi {{name}}</h2>
+    <table>
+        <tr>
+            <td>Deck</td>
+            <th>Question</th>
+            <th>Answer</th>
+            <th>Score</th>
+            <th>Last Review</th>
+        </tr>
+        {% for item in data  %}
+        <tr>
+            <td>{{item.deck_id}}</td>
+            <td>{{item.question}}</td>
+            <td>{{item.answer}}</td>
+            <td>{{item.last_review_time}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
