@@ -4,7 +4,6 @@
 This project is a SPA (single page application) designed using VueJS. Data at UI is being populated via API call.
 ### Author
 * Manish Kumar
-* 21F1006597
 * I’m passionate to write code from scratch, but also like library and framework
 ### Description
 * A user can register then create a deck and add cards to it.
