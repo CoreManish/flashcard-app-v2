@@ -85,6 +85,8 @@ export const cards = Vue.component("cards", {
           };
           this.cards.push(myDataObject)
           localStorage.cards = JSON.stringify(this.cards)
+          this.question=""
+          this.answer=""
         }
 
       } catch (err) { console.log(err) }

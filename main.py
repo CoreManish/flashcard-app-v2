@@ -419,13 +419,13 @@ class IEDeckResource(Resource):
 
             # write the header
             header = ['id', 'name', 'average_score',
-                'last_review_time', 'user_id']
+                      'last_review_time', 'user_id']
             writer.writerow(header)
 
             # write multiple rows
             for deck in decks:
                 d = [deck.id, deck.name, deck.average_score,
-                    deck.last_review_time, deck.user_id]
+                     deck.last_review_time, deck.user_id]
                 writer.writerow(d)
             link = "/"+filename
             return jsonify({"link": link})
@@ -450,16 +450,17 @@ class IECardResource(Resource):
 
             # write the header
             header = ['id', 'question', 'answer', 'last_review_time',
-                'next_review_time', 'score', 'deck_id', 'user_id']
+                      'next_review_time', 'score', 'deck_id', 'user_id']
             writer.writerow(header)
 
             # write multiple rows
             for card in cards:
                 d = [card.id, card.question, card.answer, card.last_review_time,
-                    card.next_review_time, card.score, card.deck_id, card.user_id]
+                     card.next_review_time, card.score, card.deck_id, card.user_id]
                 writer.writerow(d)
             link = "/"+filename
             return jsonify({"link": link})
+
 
 api.add_resource(IECardResource, "/iecard")
 
