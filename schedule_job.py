@@ -1,20 +1,23 @@
+from models import User, Deck, Card
+from jinja2 import Environment, FileSystemLoader
+from unicodedata import name
+from httplib2 import Http
+from json import dumps
+import time
+from email import message
+import imp
 from celery import Celery
 from flask import render_template
 celery = Celery('tasks')
 celery.config_from_object('celery_config')
 
-#--------Demo celery task START -----
+# --------Demo celery task START -----
 @celery.task
 def add(x, y):
     return x + y
-#--------Demo celery task END --------
+# --------Demo celery task END --------
 
 # ----------ALERT USER TO REVIEW START------------
-import time
-from models import User
-from json import dumps
-from httplib2 import Http
-
 @celery.task
 def sendAlertAsync():
     t = time.time()
@@ -45,15 +48,23 @@ def sendAlertAsync():
 # ----------ALERT USER TO REVIEW END------------
 
 
-#-----------SEND REPORT EMAIL START -------
+# -----------SEND REPORT EMAIL START -------
+#!/usr/bin/env python
+
+
 @celery.task
 def sendReport():
-    users=users = User.query.all()
+    users = users = User.query.all()
     for user in users:
-        recipient=user.email
-        subject="Monthly report flashcard"
-        body=render_template('report.html',name=user.name,data=user.cards)
-        send_email(recipient,subject,body)
+        recipient = user.email
+        subject = "Monthly report flashcard"
+
+        file_loader = FileSystemLoader('templates')
+        env = Environment(loader=file_loader)
+        template = env.get_template('report.html')
+        body = template.render(name=user.name, data=user.cards)
+
+        send_email(recipient, subject, body)
     return "Email has been sent to each user"
 
 
@@ -76,7 +87,7 @@ def send_email(recipient, subject, body):
     server.quit()
 
 
-#-------------SEND REPORT EMAIL END ----------
+# -------------SEND REPORT EMAIL END ----------
 
 
 
