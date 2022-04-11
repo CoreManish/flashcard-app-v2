@@ -30,7 +30,7 @@ This project is a SPA (single page application) designed using VueJS. Data at UI
   * jwt - Authentication (json web token)
   * datetime
   * sqlite3
-  * redis database - for caching and celery broker
+  * redis database - To store flask-cache, celery message queue, celery result
   * celery - for async batch jobs 
 * Templating - Jinja
 * Database - SQLite
@@ -38,8 +38,9 @@ This project is a SPA (single page application) designed using VueJS. Data at UI
 
 ### Structure of the project
 * All the controller for the request end point are present in `main.py` file
-* Model for the database and table is present in `models.py`
+* Configuration for Database and tables are defined using flask_sqlalchemy in `models.py`
 * `static/vue/app.js` is the main controller file for SPA
-* `static/vue/components` folder contains all the component for the SPA
-* Redis server configuration is present in `redis_config` file
-* Celery job is being handled in `schedule_job.py` file
+* `static/vue/components` folder contains all the child components of `static/vue/app.js`
+* Redis server configuration is present in `redis_config.py` file
+* Celery configuration is present in `celery_config.py` file
+* Automatic async celery job is being handled in `job.py` file
