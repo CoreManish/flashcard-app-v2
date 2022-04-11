@@ -10,7 +10,7 @@ import hashlib
 import csv
 
 # -------------Caching start--------
-from redis_config import *
+from config_flask_cache import *
 app.config.from_mapping(config)
 cache = Cache(app)
 # --------Caching end---------------
@@ -48,7 +48,7 @@ def token_required(f):
 @app.route("/")
 @cache.cached(timeout=60)
 def index():
-    print("index function was called because data is not in redis cache")
+    print("index function was called because data is not available as cache in redis database")
     return render_template("index.html")
 # -------root endpoint end------------
 
