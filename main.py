@@ -464,40 +464,5 @@ class IECardResource(Resource):
 
 api.add_resource(IECardResource, "/iecard")
 
-# -----Import-Export API Card END---------
-
-
-# @app.route("/iecard")
-# @token_required
-# def exportCard():
-#     result = exportCardAsync.delay()
-#     return result.wait()
-
-
-# @celery.task()
-# def exportCardAsync():
-#     check_user = User.query.filter_by(id=USER_ID).first()
-#     cards = check_user.cards
-#     if len(cards) == 0:
-#         abort(401, message="No Card found")
-#     # open the file in the write mode
-#     filename = "static/temp/"+str(USER_ID)+"-cards.csv"
-#     with open(filename, 'w', encoding='UTF8', newline='') as f:
-#         writer = csv.writer(f)
-
-#         # write the header
-#         header = ['id', 'question', 'answer', 'last_review_time',
-#             'next_review_time', 'score', 'deck_id', 'user_id']
-#         writer.writerow(header)
-
-#         # write multiple rows
-#         for card in cards:
-#             d = [card.id, card.question, card.answer, card.last_review_time,
-#                 card.next_review_time, card.score, card.deck_id, card.user_id]
-#             writer.writerow(d)
-#         link = "/"+filename
-#         return jsonify({"link": link})
-
-
 if __name__ == '__main__':
     app.run(debug=True)

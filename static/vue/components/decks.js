@@ -86,9 +86,9 @@ export const decks = Vue.component("decks", {
           <div class="card-body">
               <p class="card-title">Deck Name: <input type="text" v-model="d.name" class="border-0"></p>
               <p>Average Deck Score: {{d.average_score}}</p>
-             
-              <button class="btn btn-success" @click="update">Update</button>
-              <button class="btn btn-danger" @click="remove">Delete</button><br><br>
+              
+              <button class="btn btn-danger" @click="remove">Delete</button>
+              <button class="btn btn-success" @click="update">Update</button><br><br>
               <button class="btn btn-info" @click="review">Review</button>
               <button class="btn btn-info" @click="cards">Cards</button>
               <br><br>

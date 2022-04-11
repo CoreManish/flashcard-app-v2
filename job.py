@@ -1,25 +1,42 @@
-from models import User, Deck, Card
-from jinja2 import Environment, FileSystemLoader
-from unicodedata import name
-from httplib2 import Http
-from json import dumps
-import time
-from email import message
-import imp
-from celery import Celery
-from flask import render_template
-celery = Celery('tasks')
-celery.config_from_object('celery_config')
+from celery_config import mycelery
 
-# --------Demo celery task START -----
-@celery.task
+# define beat configuration for scheduled tasks
+from celery.schedules import crontab
+mycelery.conf.beat_schedule = {
+    'call_add_automatic': {
+        'task': 'job.add',
+        #'schedule': 5.0, # Runs in every 5 seconds
+        #'schedule': crontab(minute=1), # Runs in every 1 minutes
+        'schedule': crontab('*/1','*','*','*','*'),#Runs in every 1 minutes
+        'args': (5,7) # Run the function with arguments
+    },
+
+    'call_send_alert_automatic':{
+        'task':'job.send_alert',
+        'schedule': crontab('*/1','*','*','*','*')#Runs in every 1 minutes
+    },
+    
+    'call_send_report_automatic':{
+        'task':'job.send_report',
+        'schedule':crontab('*/1','*','*','*','*') #Runs in every 1 minutes'
+    }
+
+}
+
+#--------- DEMO CELERY AUTOMATIC START --------
+@mycelery.task()
 def add(x, y):
     return x + y
-# --------Demo celery task END --------
+#---------- DEMO CELERY AUTOMATIC END --------
+
 
 # ----------ALERT USER TO REVIEW START------------
-@celery.task
-def sendAlertAsync():
+import time
+from httplib2 import Http
+from json import dumps
+
+@mycelery.task()
+def send_alert():
     t = time.time()
     t = int(t*1000)  # timestamp in milliseconds
     review_interval = 24*60*60*1000  # if reviewd 24hr before
@@ -48,12 +65,14 @@ def sendAlertAsync():
 # ----------ALERT USER TO REVIEW END------------
 
 
+
 # -----------SEND REPORT EMAIL START -------
-#!/usr/bin/env python
 
+from models import User, Deck, Card
+from jinja2 import Environment, FileSystemLoader
 
-@celery.task
-def sendReport():
+@mycelery.task()
+def send_report():
     users = users = User.query.all()
     for user in users:
         recipient = user.email
@@ -72,8 +91,8 @@ def sendReport():
 from email.message import EmailMessage
 import smtplib
 
-SENDER = "21f1006597@student.onlinedegree.iitm.ac.in"
-PASSWORD ="mypassword"
+SENDER = ""
+PASSWORD =""
 
 def send_email(recipient, subject, body):
     msg = EmailMessage()
@@ -86,14 +105,12 @@ def send_email(recipient, subject, body):
     server.send_message(msg)
     server.quit()
 
-
 # -------------SEND REPORT EMAIL END ----------
 
 
 
-# make sure celery is running
-# run celery
-# celery -A schedule_job worker --loglevel=info --beat
-# because we are using redis as celery queue and celery result backend
-# run redis server (however redis-server is always in run mode)
-# redis-server
+# Run redis database server
+  # redis-server #runs automatically in ubuntu on bootup
+
+#Running the celery worker server
+ #celery -A job worker --loglevel=info --beat
