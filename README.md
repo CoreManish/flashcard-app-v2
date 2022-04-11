@@ -41,6 +41,6 @@ This project is a SPA (single page application) designed using VueJS. Data at UI
 * Configuration for Database and tables are defined using flask_sqlalchemy in `models.py`
 * `static/vue/app.js` is the main controller file for SPA
 * `static/vue/components` folder contains all the child components of `static/vue/app.js`
-* Redis server configuration is present in `redis_config.py` file
-* Celery configuration is present in `celery_config.py` file
-* Automatic async celery job is being handled in `job.py` file
+* flask cache configuration is present in `config_flask_cache.py` file
+* Celery configuration is present in `config_celery.py` file
+* Automatic async celery job is being handled in `celery_batch_job.py` file
