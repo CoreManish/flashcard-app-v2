@@ -46,5 +46,5 @@ This project is a SPA (single page application) designed using VueJS. Data at UI
 * Automatic async celery job is being handled in `celery_batch_job.py` file
 
 #### UI and live
-- Live link : [Go](https://weather.curecode.repl.co/)
+- Live link : [Go](https://flashcard-v2.curecode.repl.co)
 - Screenshot: ![screenshot](/static/img/screenshot.png) 
