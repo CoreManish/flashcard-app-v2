@@ -50,6 +50,11 @@ This project is a SPA (single page application) designed using VueJS. Data at UI
   - `pip install -r requirements.txt`
 * Install redis database
   - `sudo apt install redis`
+  - redis server automatically starts on system boot
+  - if you want to see redis database and stored content
+    - type `redis-cli` in terminal
+    - then `KEYS *`
+* If `project.sqlite` database is not present then first create
 * run `main.py` file
   - `python3 main.py`
 #### UI and live
