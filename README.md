@@ -45,6 +45,13 @@ This project is a SPA (single page application) designed using VueJS. Data at UI
 * Celery configuration is present in `config_celery.py` file
 * Automatic async celery job is being handled in `celery_batch_job.py` file
 
+### How to run
+* Fisrt of all install all required python library
+  - `pip install -r requirements.txt`
+* Install redis database
+  - `sudo apt install redis`
+* run `main.py` file
+  - `python3 main.py`
 #### UI and live
 - Live link : [Go](https://flashcard-v2.curecode.repl.co)
 - Screenshot: ![screenshot](/static/img/screenshot.png) 
