@@ -55,6 +55,9 @@ This project is a SPA (single page application) designed using VueJS. Data at UI
     - type `redis-cli` in terminal
     - then `KEYS *`
 * If `project.sqlite` database is not present then first create
+  - type `python3` in terminal
+  - `from models import db`
+  - `db.create_all()`
 * run `main.py` file
   - `python3 main.py`
 #### UI and live
