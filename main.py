@@ -9,10 +9,12 @@ import jwt
 import hashlib
 import csv
 
+
 # -------------Caching start--------
+from flask_caching import Cache
 from config_flask_cache import *
 app.config.from_mapping(config)
-cache = Cache(app)
+mycache = Cache(app)
 # --------Caching end---------------
 
 
@@ -46,7 +48,7 @@ def token_required(f):
 
 # -------Root endpoint start-----------
 @app.route("/")
-@cache.cached(timeout=60)
+@mycache.cached(timeout=60)
 def index():
     print("index function was called because data is not available as cache in redis database")
     return render_template("index.html")
