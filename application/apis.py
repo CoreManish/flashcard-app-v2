@@ -363,7 +363,7 @@ class OneCardResource(Resource):
         # ---- Select one card from given deck
         t = time.time()
         t = int(t*1000)  # timestamp in milliseconds
-        conn = sqlite3.connect("project.sqlite")
+        conn = sqlite3.connect("./project.sqlite")
         cur = conn.cursor()
         query = """SELECT id,question,answer,last_review_time,score,deck_id,user_id FROM card WHERE deck_id=? AND user_id=? AND next_review_time<? ORDER BY RANDOM() LIMIT 1"""
         cur.execute(query, (deck_id, USER_ID, t))
