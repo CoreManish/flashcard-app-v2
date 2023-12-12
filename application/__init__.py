@@ -3,8 +3,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api
 from flask_caching import Cache
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from datetime import timedelta
 
 app = Flask(__name__,template_folder='../templates/',static_folder='../static/')
 
@@ -44,12 +42,6 @@ db = SQLAlchemy(app)
 # Initialize Api 
 api = Api(app)
 
-#jwt
-app.config['JWT_SECRET_KEY'] = 'your_secret_key'  # Change this to a secure, random value in production
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=15)  # Set the expiration time
-jwt = JWTManager(app)
-
-
 # from application.models import *
 # with app.app_context():
 #     db.create_all()
@@ -57,7 +49,7 @@ jwt = JWTManager(app)
 from application.apis import *
 
 # Add Resources to API route
-api.add_resource(Home, '/')
+api.add_resource(HomeResource, '/')
 api.add_resource(Login, '/login')
 api.add_resource(Register, '/register')
 api.add_resource(DeckResource, '/deck')

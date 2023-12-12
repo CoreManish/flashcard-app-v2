@@ -1,20 +1,42 @@
-from application import db,app,cache
+from application import db,cache,app
 from application.models import *
-
+from datetime import timedelta,datetime
 from flask import jsonify, render_template, request,make_response
 from flask_restful import Api, Resource, abort, marshal_with, reqparse, fields
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import time
-from datetime import datetime, timedelta
 import sqlite3
-from functools import wraps
-import jwt
 import hashlib
 import csv
+from functools import wraps
+import jwt
 
+# -------------JWT Token check START------------
+
+def jwt_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if request.args['token']:
+            token = request.args['token']
+
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], "HS256")
+            global USER_ID
+            USER_ID = data['USER_ID']
+        except:
+            return jsonify({'message': 'Token is invalid!'}), 401
+
+        return f(*args, **kwargs)
+
+    return decorated
+# -------jwt token check END-----------
 
 # -------Root endpoint start-----------
-class Home(Resource):
+class HomeResource(Resource):
     @cache.cached(timeout=60)
     def get(self):
         print("function called because data is not available as cache")
@@ -42,15 +64,14 @@ class Login(Resource):
 
         if check_record is None:
             abort(401, message="Wrong credentials")
-        token = create_access_token(identity=check_record.id)
-        return {'token': token}, 200
-
-
+        token = jwt.encode({'USER_ID': check_record.id, 'exp': datetime.utcnow(
+        ) + timedelta(minutes=600)}, app.config['SECRET_KEY'])
+        return {"token": token}, 200
 
 # ------------Login end-------------
 
-# ------User Registration start------
 
+# ------User Registration start------
 
 class Register(Resource):
     def post(self):
@@ -106,20 +127,19 @@ deck_output_format = {
 
 
 class DeckResource(Resource):
-    @jwt_required()
+    @jwt_required
     @marshal_with(deck_output_format)
     def get(self):
-        alldeck = Deck.query.filter_by(user_id=get_jwt_identity()).all()
+        alldeck = Deck.query.filter_by(user_id=USER_ID).all()
 
         if len(alldeck) == 0:
             abort(403, message="You don't have a deck")
             # return {"message":"You don't have a deck"},403
         return alldeck
 
-    @jwt_required()
+    @jwt_required
     @marshal_with(deck_output_format)
     def post(self):
-        print(get_jwt_identity())
         deck_input_format = reqparse.RequestParser()
         deck_input_format.add_argument(
             "name", type=str, help="Deck name is required", required=True)
@@ -127,9 +147,9 @@ class DeckResource(Resource):
         data = deck_input_format.parse_args()
 
         check_deck = Deck.query.filter_by(
-            user_id=get_jwt_identity(), name=data['name']).first()
+            user_id=USER_ID, name=data['name']).first()
         if check_deck is None:
-            new_deck = Deck(name=data['name'], user_id=get_jwt_identity())
+            new_deck = Deck(name=data['name'], user_id=USER_ID)
             db.session.add(new_deck)
             db.session.commit()
             return new_deck, 201
@@ -137,7 +157,7 @@ class DeckResource(Resource):
             abort(409, message="You already have this deck")
             # return {"message":"You already have this deck"},409
 
-    @jwt_required()
+    @jwt_required
     @marshal_with(deck_output_format)
     def put(self):
         deck_input_format = reqparse.RequestParser()
@@ -148,7 +168,7 @@ class DeckResource(Resource):
         data = deck_input_format.parse_args()
 
         check_deck = Deck.query.filter_by(
-            user_id=get_jwt_identity(), id=data['id']).first()
+            user_id=USER_ID, id=data['id']).first()
 
         if check_deck is None:
             abort(403, message="You don't have such a deck")
@@ -158,7 +178,7 @@ class DeckResource(Resource):
         db.session.commit()
         return check_deck
 
-    @jwt_required()
+    @jwt_required
     def delete(self):
         deck_input_format = reqparse.RequestParser()
         deck_input_format.add_argument(
@@ -166,7 +186,7 @@ class DeckResource(Resource):
         data = deck_input_format.parse_args()
 
         check_deck = Deck.query.filter_by(
-            user_id=get_jwt_identity(), id=data['id']).first()
+            user_id=USER_ID, id=data['id']).first()
 
         if check_deck is None:
             abort(403, message="You don't have such a deck")
@@ -193,12 +213,11 @@ card_output_format = {
 
 
 class CardResource(Resource):
-    @jwt_required()
+    @jwt_required
     @marshal_with(card_output_format)
     def get(self, deck_id):
-
         # ---- Check deck existence-----
-        check_deck = Deck.query.filter_by(id=deck_id, user_id=get_jwt_identity()).first()
+        check_deck = Deck.query.filter_by(id=deck_id, user_id=USER_ID).first()
         if check_deck is None:
             abort(403, message="Deck doesn't exists")
 
@@ -209,10 +228,9 @@ class CardResource(Resource):
         # ---- Return all cards of given deck----
         return check_deck.cards
 
-    @jwt_required()
+    @jwt_required
     @marshal_with(card_output_format)
     def post(self, deck_id):
-
         # -----Card input json format ----
         card_input_format = reqparse.RequestParser()
         card_input_format.add_argument(
@@ -222,24 +240,24 @@ class CardResource(Resource):
         data = card_input_format.parse_args()
 
         # ----Check deck existence ----
-        check_deck = Deck.query.filter_by(id=deck_id, user_id=get_jwt_identity()).first()
+        check_deck = Deck.query.filter_by(id=deck_id, user_id=USER_ID).first()
         if check_deck is None:
             abort(403, message="Sorry, Deck id not found")
 
         # ----Check card existence-----
         check_card = Card.query.filter_by(
-            question=data['question'], deck_id=deck_id, user_id=get_jwt_identity()).first()
+            question=data['question'], deck_id=deck_id, user_id=USER_ID).first()
         if check_card is not None:
             abort(409, message="This card already exists")
 
         # ---- Create new card----
         new_card = Card(question=data['question'], answer=data['answer'],
-                        last_review_time=0, next_review_time=0, score=0, deck_id=deck_id, user_id=get_jwt_identity())
+                        last_review_time=0, next_review_time=0, score=0, deck_id=deck_id, user_id=USER_ID)
         db.session.add(new_card)
         db.session.commit()
         return new_card, 201
 
-    @jwt_required()
+    @jwt_required
     @marshal_with(card_output_format)
     def put(self, deck_id):
         # ---- Card input json format
@@ -259,18 +277,18 @@ class CardResource(Resource):
         data = card_input_format.parse_args()
 
         # ------check user existence-----
-        check_user = User.query.filter_by(id=get_jwt_identity()).first()
+        check_user = User.query.filter_by(id=USER_ID).first()
         if check_user is None:
             abort(403, message="Sorry user doesn't exist")
 
         # ----Check deck existence ----
-        check_deck = Deck.query.filter_by(id=deck_id, user_id=get_jwt_identity()).first()
+        check_deck = Deck.query.filter_by(id=deck_id, user_id=USER_ID).first()
         if check_deck is None:
             abort(403, message="Sorry, Deck id not found")
 
         # ---Check card existence
         check_card = Card.query.filter_by(
-            id=data['id'], deck_id=deck_id, user_id=get_jwt_identity()).first()
+            id=data['id'], deck_id=deck_id, user_id=USER_ID).first()
         if check_card is None:
             abort(403, message="Sorry, card id not found")
 
@@ -298,7 +316,7 @@ class CardResource(Resource):
 
         return check_card
 
-    @jwt_required()
+    @jwt_required
     def delete(self, deck_id):
         card_input_format = reqparse.RequestParser()
         card_input_format.add_argument(
@@ -306,13 +324,13 @@ class CardResource(Resource):
         data = card_input_format.parse_args()
 
         # ----Check deck existence ----
-        check_deck = Deck.query.filter_by(id=deck_id, user_id=get_jwt_identity()).first()
+        check_deck = Deck.query.filter_by(id=deck_id, user_id=USER_ID).first()
         if check_deck is None:
             abort(403, message="Sorry, Deck id not found")
 
         # ---Check card existence
         check_card = Card.query.filter_by(
-            id=data['id'], deck_id=deck_id, user_id=get_jwt_identity()).first()
+            id=data['id'], deck_id=deck_id, user_id=USER_ID).first()
         if check_card is None:
             abort(403, message="Sorry, card id not found")
 
@@ -330,11 +348,11 @@ class CardResource(Resource):
 
 
 class OneCardResource(Resource):
-    @jwt_required()
+    @jwt_required
     @marshal_with(card_output_format)
     def get(self, deck_id):
         # ---- Check deck existence-----
-        check_deck = Deck.query.filter_by(id=deck_id, user_id=get_jwt_identity()).first()
+        check_deck = Deck.query.filter_by(id=deck_id, user_id=USER_ID).first()
         if check_deck is None:
             abort(403, message="Deck doesn't exists")
 
@@ -348,7 +366,7 @@ class OneCardResource(Resource):
         conn = sqlite3.connect("project.sqlite")
         cur = conn.cursor()
         query = """SELECT id,question,answer,last_review_time,score,deck_id,user_id FROM card WHERE deck_id=? AND user_id=? AND next_review_time<? ORDER BY RANDOM() LIMIT 1"""
-        cur.execute(query, (deck_id, get_jwt_identity(), t))
+        cur.execute(query, (deck_id, USER_ID, t))
         row = cur.fetchone()
         if row is None:
             abort(404, message="No card left to review now! You can wait for some time")
@@ -371,14 +389,14 @@ class OneCardResource(Resource):
 
 # -----Import-Export Deck API START---------
 class IEDeckResource(Resource):
-    @jwt_required()
+    @jwt_required
     def get(self):
-        check_user = User.query.filter_by(id=get_jwt_identity()).first()
+        check_user = User.query.filter_by(id=USER_ID).first()
         decks = check_user.decks
         if len(decks) == 0:
             abort(401, message="No deck found")
         # open the file in the write mode
-        filename = "static/temp/"+str(get_jwt_identity())+"-decks.csv"
+        filename = "static/temp/"+str(USER_ID)+"-decks.csv"
         with open(filename, 'w', encoding='UTF8', newline='') as f:
             writer = csv.writer(f)
 
@@ -402,14 +420,14 @@ class IEDeckResource(Resource):
 
 # -----Import-Export API Card START---------
 class IECardResource(Resource):
-    @jwt_required()
+    @jwt_required
     def get(self):
-        check_user = User.query.filter_by(id=get_jwt_identity()).first()
+        check_user = User.query.filter_by(id=USER_ID).first()
         cards = check_user.cards
         if len(cards) == 0:
             abort(401, message="No Card found")
         # open the file in the write mode
-        filename = "static/temp/"+str(get_jwt_identity())+"-cards.csv"
+        filename = "static/temp/"+str(USER_ID)+"-cards.csv"
         with open(filename, 'w', encoding='UTF8', newline='') as f:
             writer = csv.writer(f)
 
