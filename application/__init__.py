@@ -42,6 +42,7 @@ db = SQLAlchemy(app)
 # Initialize Api 
 api = Api(app)
 
+# Run once to create database and table
 # from application.models import *
 # with app.app_context():
 #     db.create_all()

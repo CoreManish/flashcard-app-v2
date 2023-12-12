@@ -37,11 +37,11 @@ This project is a SPA (single page application) designed using VueJS. Data at UI
 * ORM - flask-sqlalchemy
 
 ### Structure of the project
-* All the controller for the request end point are present in `main.py` file
-* Configuration for Database and tables are defined using flask_sqlalchemy in `models.py`
-* `static/vue/app.js` is the main controller file for SPA
+This project follow MVC pattern
+* `models` are present in `application/models.py` file
+* `controller` are present in `apis.py`
+* `view` is present in `static/vue/app.js`. It also acts as the main controller file for SPA
 * `static/vue/components` folder contains all the child components of `static/vue/app.js`
-* flask cache configuration is present in `config_flask_cache.py` file
 * Celery configuration is present in `config_celery.py` file
 * Automatic async celery job is being handled in `celery_batch_job.py` file
 
@@ -54,12 +54,13 @@ This project is a SPA (single page application) designed using VueJS. Data at UI
   - if you want to see redis database and stored content
     - type `redis-cli` in terminal
     - then `KEYS *`
-* If `project.sqlite` database is not present then first create
-  - type `python3` in terminal
-  - `from models import db`
-  - `db.create_all()`
+
 * run `main.py` file
   - `python3 main.py`
+* If `database/project.sqlite` database is not present then first create
+  - Inside __init__.py, there are few lines to create db and table
+  - uncomment them then run application as usual
+  - then comment them again
 #### UI and live
 - Live link : [Go](https://flashcard-v2.curecode.repl.co)
 - Screenshot: ![screenshot](/static/img/screenshot.png) 
