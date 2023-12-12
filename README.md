@@ -62,5 +62,5 @@ This project follow MVC pattern
   - uncomment them then run application as usual
   - then comment them again
 #### UI and live
-- Live link : [Go](https://flashcard-v2.curecode.repl.co)
+- Live link : [Go](https://flashcard-mad2-project.curecode.repl.co)
 - Screenshot: ![screenshot](/static/img/screenshot.png) 
