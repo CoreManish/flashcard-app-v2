@@ -1,5 +1,7 @@
-### This is graded project for the course Modern Application development 2 (MAD2) at IITM
-
+### This is graded project for the course Modern Application development 2 (MAD2) at IIT Madras
+### UI and live
+- Use me : [Click & Go](https://flashcard-mad2-project.curecode.repl.co)
+- Screenshot: ![screenshot](/static/img/screenshot.png) 
 ### Introduction
 This project is a SPA (single page application) designed using VueJS. Data at UI is being populated via API call.
 ### Author
@@ -61,6 +63,4 @@ This project follow MVC pattern
   - Inside __init__.py, there are few lines to create db and table
   - uncomment them then run application as usual
   - then comment them again
-#### UI and live
-- Live link : [Go](https://flashcard-mad2-project.curecode.repl.co)
-- Screenshot: ![screenshot](/static/img/screenshot.png) 
+
