@@ -1,1 +1,31 @@
-venv
+# .gitignore
+
+# Virtual environment
+venv/
+
+# Compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local development settings
+.env
+
+# IDE settings
+.idea/
+
+# Compiled bytecode
+*.pyc
+
+# Database
+db.sqlite
+
+# Ignore the migration folder if you are using Flask-Migrate
+/migrations/
+
+# Ignore the Python generated folder
+__pycache__/
+
+# celery beat schedule
+celerybeat-schedule

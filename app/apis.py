@@ -1,14 +1,19 @@
-from application import db,cache,app
-from application.models import *
+#--------------Import from other files-----------------------------------------
+from app import db,cache,app
+from app.models import *
+#------------------------------------------------------------------------------
+
+#---------------Import Library-------------------------------------------------
 from datetime import timedelta,datetime
 from flask import jsonify, render_template, request,make_response
-from flask_restful import Api, Resource, abort, marshal_with, reqparse, fields
+from flask_restful import Resource, abort, marshal_with, reqparse, fields
 import time
 import sqlite3
 import hashlib
 import csv
 from functools import wraps
 import jwt
+#------------------------------------------------------------------------------
 
 # -------------JWT Token check START------------
 
@@ -363,7 +368,7 @@ class OneCardResource(Resource):
         # ---- Select one card from given deck
         t = time.time()
         t = int(t*1000)  # timestamp in milliseconds
-        conn = sqlite3.connect("./database/project.sqlite")
+        conn = sqlite3.connect("app/database/project.db")
         cur = conn.cursor()
         query = """SELECT id,question,answer,last_review_time,score,deck_id,user_id FROM card WHERE deck_id=? AND user_id=? AND next_review_time<? ORDER BY RANDOM() LIMIT 1"""
         cur.execute(query, (deck_id, USER_ID, t))
